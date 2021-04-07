@@ -24,21 +24,22 @@ class InitialAvatar
 	/** @var Initials */
 	protected $initials_generator;
 
-	protected $driver             = 'gd'; // imagick or gd
-	protected $fontSize           = 0.5;
-	protected $name               = 'John Doe';
-	protected $width              = 48;
-	protected $height             = 48;
-	protected $bgColor            = '#f0e9e9';
-	protected $fontColor          = '#8b5d5d';
-	protected $rounded            = false;
-	protected $smooth             = false;
-	protected $autofont           = false;
-	protected $keepCase           = false;
-	protected $fontFile           = '/fonts/OpenSans-Regular.ttf';
-	protected $fontName           = 'OpenSans, sans-serif';
-	protected $generated_initials = 'JD';
-	protected $preferBold         = false;
+	protected $driver                           = 'gd'; // imagick or gd
+	protected $fontSize                         = 0.5;
+	protected $name                             = 'John Doe';
+	protected $width                            = 48;
+	protected $height                           = 48;
+	protected $bgColor                          = '#f0e9e9';
+	protected $fontColor                        = '#8b5d5d';
+	protected $rounded                          = false;
+	protected $smooth                           = false;
+	protected $autofont                         = false;
+	protected $keepCase                         = false;
+	protected $allowSpecialCharacters           = true;
+	protected $fontFile                         = '/fonts/OpenSans-Regular.ttf';
+	protected $fontName                         = 'OpenSans, sans-serif';
+	protected $generated_initials               = 'JD';
+	protected $preferBold                       = false;
 
 	/**
 	 * Language eg.en zh-CN
@@ -314,6 +315,19 @@ class InitialAvatar
 	}
 
 	/**
+	 * Set if should allow (or remove) special characters
+	 *
+	 * @param bool $allowSpecialCharacters
+	 *
+	 * @return $this
+	 */
+	public function allowSpecialCharacters( $allowSpecialCharacters = true ) {
+		$this->allowSpecialCharacters = (bool) $allowSpecialCharacters;
+
+		return $this;
+	}
+
+	/**
 	 * Set the font size in percentage
 	 * (0.1 = 10%).
 	 *
@@ -337,7 +351,9 @@ class InitialAvatar
 	public function generate( $name = null ) {
 		if ( $name !== null ) {
 			$this->name               = $name;
-			$this->generated_initials = $this->initials_generator->keepCase( $this->getKeepCase() )->generate( $name );
+			$this->generated_initials = $this->initials_generator->keepCase( $this->getKeepCase() )
+			                                                     ->allowSpecialCharacters( $this->getAllowSpecialCharacters() )
+			                                                     ->generate( $name );
 		}
 
 		return $this->makeAvatar( $this->image );
@@ -353,7 +369,9 @@ class InitialAvatar
 	public function generateSvg( $name = null ) {
 		if ( $name !== null ) {
 			$this->name               = $name;
-			$this->generated_initials = $this->initials_generator->keepCase( $this->getKeepCase() )->generate( $name );
+			$this->generated_initials = $this->initials_generator->keepCase( $this->getKeepCase() )
+			                                                     ->allowSpecialCharacters( $this->getAllowSpecialCharacters() )
+			                                                     ->generate( $name );
 		}
 
 		return $this->makeSvgAvatar();
@@ -365,7 +383,10 @@ class InitialAvatar
 	 * @return string
 	 */
 	public function getInitials() {
-		return $this->initials_generator->keepCase( $this->getKeepCase() )->name( $this->name )->getInitials();
+		return $this->initials_generator->keepCase( $this->getKeepCase() )
+		                                ->allowSpecialCharacters( $this->getAllowSpecialCharacters() )
+		                                ->name( $this->name )
+		                                ->getInitials();
 	}
 
 	/**
@@ -472,6 +493,15 @@ class InitialAvatar
 	 */
 	public function getKeepCase() {
 		return $this->keepCase;
+	}
+
+	/**
+	 * Will return the allowSpecialCharacters parameter.
+	 *
+	 * @return boolean
+	 */
+	public function getAllowSpecialCharacters() {
+		return $this->allowSpecialCharacters;
 	}
 
 	/**
@@ -606,10 +636,10 @@ class InitialAvatar
 		// Text
 		$text = new SVGText( $this->getInitials(), '50%', '50%' );
 		$text->setFont( new SVGFont( $this->getFontName(), $this->findFontFile() ) );
-		$text->setSize( $this->getFontSize() * $this->getWidth() );
 		$text->setStyle( 'line-height', 1 );
 		$text->setAttribute( 'dy', '.1em' );
 		$text->setAttribute( 'fill', $this->getColor() );
+		$text->setAttribute('font-size', $this->getFontSize() * $this->getWidth());		
 		$text->setAttribute( 'text-anchor', 'middle' );
 		$text->setAttribute( 'dominant-baseline', 'middle' );
 
